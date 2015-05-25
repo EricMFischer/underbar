@@ -99,6 +99,15 @@
 
   // Produce a duplicate-free version of the array.
   _.uniq = function(array) {
+    var tracker = {};
+    var newArr = [];
+    _.each(array, function(value) {
+      if (!tracker.hasOwnProperty(value)) {
+        newArr.push(value);
+        tracker[value] = true;
+      }
+    });
+    return newArr;
   };
 
 
