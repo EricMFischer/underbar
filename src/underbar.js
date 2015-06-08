@@ -35,13 +35,14 @@
     return n === undefined ? array[0] : array.slice(0, n);
   };
 
+
   // Like first, but for the last elements. If n is undefined, return just the
   // last element.
   _.last = function(array, n) {
-    if (n > array.length) {return array} else {
-      return n === undefined ? array[array.length-1] : array.slice(array.length-n, array.length);
-    }
+    if (n > array.length) {return array;} 
+    else {return n === undefined ? array[array.length-1] : array.slice(array.length-n, array.length);}
   };
+
 
   // Call iterator(value, key, collection) for each element of collection.
   // Accepts both arrays and objects.
@@ -60,6 +61,7 @@
     }
   };
 
+
   // Returns the index at which value can be found in the array, or -1 if value
   // is not present in the array.
   _.indexOf = function(array, target){
@@ -77,6 +79,7 @@
     return result;
   };
 
+
   // Return all elements of an array that pass a truth test.
   _.filter = function(collection, test) {
     var newArr = [];
@@ -88,6 +91,7 @@
     return newArr;
   };
 
+
   // Return all elements of an array that don't pass a truth test.
   _.reject = function(collection, test) {
     // TIP: see if you can re-use _.filter() here, without simply
@@ -96,6 +100,7 @@
       return !test(value);
     });
   };
+
 
   // Produce a duplicate-free version of the array.
   _.uniq = function(array) {
@@ -123,23 +128,25 @@
     return newArr;
   };
 
+
   /*
    * TIP: map is really handy when you want to transform an array of
    * values into a new array of values. _.pluck() is solved for you
    * as an example of this.
    */
 
-  // Takes an array of objects and returns and array of the values of
+  // Takes an array of objects and returns an array of the values of
   // a certain property in it. E.g. take an array of people and return
   // an array of just their ages
   _.pluck = function(collection, key) {
     // TIP: map is really handy when you want to transform an array of
     // values into a new array of values. _.pluck() is solved for you
     // as an example of this.
-    return _.map(collection, function(item){
-      return item[key];
+    return _.map(collection, function(value){
+      return value[key];
     });
   };
+
 
   // Reduces an array or object to a single value by repetitively calling
   // iterator(accumulator, item) for each item. accumulator should be
@@ -161,7 +168,7 @@
   //     return total + number * number;
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
-_.reduce = function(collection, iterator, accumulator) {
+  _.reduce = function(collection, iterator, accumulator) {
     if (accumulator === undefined) {
       var prevalue = collection.shift();
       _.each(collection, function(item) {
@@ -176,6 +183,7 @@ _.reduce = function(collection, iterator, accumulator) {
     }
     return prevalue;
   };
+
 
   // Determine if the array or object contains a given value (using `===`).
   _.contains = function(collection, target) {
@@ -192,15 +200,38 @@ _.reduce = function(collection, iterator, accumulator) {
 
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
-    // TIP: Try re-using reduce() here.
+    if (collection.length === 0) {return true;}
+    if (!iterator) {iterator = _.identity;}
+
+    return _.reduce(collection, function(prevalue, item) {
+      if (!prevalue) {return false;}
+      else {return Boolean(iterator(item));}
+    }, true);
   };
+  // Is my understanding correct?
+  // In _.reduce here, the prevalue starts as true. As we iterate through our function,
+  // if iterator is ever NOT true for an item, then, as per the _.reduce function,
+  //                      prevalue = iterator(prevalue, item); 
+  // prevalue will get assigned a new value, i.e. false. As we keep iterating through our function,
+  // as _.reduce does, prevalue will thus repeatedly get assigned the value false. Ultimately then,
+  // _.every would return false.
+
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
-  _.some = function(collection, iterator) {
+   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
-  };
+    if (collection.length === 0) {return false;}
+    if (!iterator) {iterator = _.identity;}
 
+    return !_.every(collection, function(item) {
+      return !iterator(item);
+      });
+  };
+  // For every item in the collection, return the opposite boolean of iterator being tested
+  // on an item. So if it passes for 1 out of 3, we'd have 1 false and 2 truths. _.every
+  // would then return false.
+  // So we need to negate _.every to have _.some return true, as it should.
 
   /**
    * OBJECTS
@@ -221,13 +252,28 @@ _.reduce = function(collection, iterator, accumulator) {
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    var args = Array.prototype.slice.call(arguments,1);
+    // Converts to a real array the arguments passed in
+    _.each(args, function(item) {
+      _.each(item, function(value, key) {
+        obj[key] = value;
+      });
+    });
+    return obj;
   };
+
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    var args = Array.prototype.slice.call(arguments,1);
+    _.each(args, function(item){
+      _.each(item, function(value, key){
+        if(!obj.hasOwnProperty(key)) { obj[key] = value; }
+      });
+    });
+    return obj;
   };
-
 
   /**
    * FUNCTIONS
@@ -251,7 +297,7 @@ _.reduce = function(collection, iterator, accumulator) {
     return function() {
       if (!alreadyCalled) {
         // TIP: .apply(this, arguments) is the standard way to pass on all of the
-        // infromation from one function call to another.
+        // information from one function call to another.
         result = func.apply(this, arguments);
         alreadyCalled = true;
       }
@@ -259,6 +305,12 @@ _.reduce = function(collection, iterator, accumulator) {
       return result;
     };
   };
+
+  // Both call and apply are called on functions, which they run in the context
+  // of the first argument. In call, the subsequent arguments are simply passed
+  // into the function. Apply expects the second argument to be an array that
+  // it unpacks as arguments for the called function.
+
 
   // Memorize an expensive function's results by storing them. You may assume
   // that the function takes only one argument and that it is a primitive.
@@ -269,7 +321,20 @@ _.reduce = function(collection, iterator, accumulator) {
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    var storage = {};
+    return function() {
+      var key = _.identity.apply(this, arguments);
+      if (storage[key]) {
+        return storage[key];
+        // already computed result, so returning that value instead
+      }
+      else {
+        storage[key] = func.apply(this, arguments);
+        return storage[key];
+      }
+    };
   };
+
 
   // Delays a function for the given number of milliseconds, and then calls
   // it with the arguments supplied.
@@ -278,6 +343,11 @@ _.reduce = function(collection, iterator, accumulator) {
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    // Need to get all of the arguments after the first two
+    var args = Array.prototype.slice.call(arguments,2);
+    setTimeout(function() {
+      func.apply(this, args);
+    }, wait);
   };
 
 
@@ -292,6 +362,16 @@ _.reduce = function(collection, iterator, accumulator) {
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    var copy = array.slice();
+    var tempValue;
+    var randomIndex;
+    for (var i = copy.length-1; i > 0; i--) {
+      randomIndex = Math.floor(Math.random() * (i+1));
+      tempValue = copy[i];
+      copy[i] = copy[randomIndex];
+      copy[randomIndex] = tempValue;
+    }
+    return copy;
   };
 
 
