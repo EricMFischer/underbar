@@ -24,7 +24,7 @@
    *
    * The .first function is implemented for you, to help guide you toward success
    * in your work on the following functions. Whenever you see a portion of the
-   * assignment pre-completed, be sure to read and understanding it fully before
+   * assignment pre-completed, be sure to read and understand it fully before
    * you proceed. Skipping this step will lead to considerably more difficulty
    * implementing the sections you are responsible for.
    */
@@ -40,7 +40,7 @@
   // last element.
   _.last = function(array, n) {
     if (n > array.length) {return array;} 
-    else {return n === undefined ? array[array.length-1] : array.slice(array.length-n, array.length);}
+    return n === undefined ? array[array.length-1] : array.slice(array.length-n, array.length);
   };
 
 
@@ -62,20 +62,18 @@
   };
 
 
-  // Returns the index at which value can be found in the array, or -1 if value
+  // Returns the index at which a value can be found in the array, or -1 if value
   // is not present in the array.
   _.indexOf = function(array, target){
     // TIP: Here's an example of a function that needs to iterate, which we've
     // implemented for you. Instead of using a standard `for` loop, though,
     // it uses the iteration helper `each`, which you will need to write.
     var result = -1;
-
     _.each(array, function(item, index) {
       if (item === target && result === -1) {
         result = index;
       }
     });
-
     return result;
   };
 
@@ -83,9 +81,9 @@
   // Return all elements of an array that pass a truth test.
   _.filter = function(collection, test) {
     var newArr = [];
-    _.each(collection, function(value) {
-      if (test(value)) {
-        newArr.push(value);
+    _.each(collection, function(item) {
+      if (test(item)) {
+        newArr.push(item);
       }
     });
     return newArr;
@@ -96,8 +94,8 @@
   _.reject = function(collection, test) {
     // TIP: see if you can re-use _.filter() here, without simply
     // copying code in and modifying it
-    return _.filter(collection, function(value) {
-      return !test(value);
+    return _.filter(collection, function(item) {
+      return !test(item);
     });
   };
 
@@ -106,15 +104,14 @@
   _.uniq = function(array) {
     var tracker = {};
     var newArr = [];
-    _.each(array, function(value) {
-      if (!tracker.hasOwnProperty(value)) {
-        newArr.push(value);
-        tracker[value] = true;
+    _.each(array, function(item) {
+      if (!tracker.hasOwnProperty(item)) {
+        newArr.push(item);
+        tracker[item] = true;
       }
     });
     return newArr;
   };
-
 
   // Return the results of applying an iterator to each element.
   _.map = function(collection, iterator) {
@@ -122,8 +119,8 @@
     // like each(), but in addition to running the operation on all
     // the members, it also maintains an array of results.
     var newArr = [];
-    _.each(collection, function(value) {
-      newArr.push(iterator(value));
+    _.each(collection, function(item) {
+      newArr.push(iterator(item));
     });
     return newArr;
   };
@@ -142,8 +139,8 @@
     // TIP: map is really handy when you want to transform an array of
     // values into a new array of values. _.pluck() is solved for you
     // as an example of this.
-    return _.map(collection, function(value){
-      return value[key];
+    return _.map(collection, function(item){
+      return item[key];
     });
   };
 
@@ -169,33 +166,25 @@
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
-    if (accumulator === undefined) {
-      var prevalue = collection.shift();
-      _.each(collection, function(item) {
-        prevalue = iterator(prevalue, item);
-      });
-    }
-    else {
-      var prevalue = accumulator;
-      _.each(collection, function(item) {
-        prevalue = iterator(prevalue, item);
-      });
-    }
+    var prevalue;
+    if (accumulator === undefined) {prevalue = collection.shift();}
+    else {prevalue = accumulator;}
+    _.each(collection, function(item) {
+      prevalue = iterator(prevalue, item);
+    });
     return prevalue;
-  };
+  }
 
 
   // Determine if the array or object contains a given value (using `===`).
   _.contains = function(collection, target) {
     // TIP: Many iteration problems can be most easily expressed in
     // terms of reduce(). Here's a freebie to demonstrate!
-    return _.reduce(collection, function(wasFound, item) {
-      if (wasFound) {
-        return true;
-      }
-      return item === target;
-    }, false);
-  };
+    return _.reduce(collection, function(prevalue, item) {
+      if (prevalue) {return true;}   // 2) <- and then prevalue would stay true
+      else {return item === target;} // 1) prevalue would get set to true (if it's true)
+    }, false); // by default false
+  }
 
 
   // Determine whether all of the elements match a truth test.
@@ -204,34 +193,23 @@
     if (!iterator) {iterator = _.identity;}
 
     return _.reduce(collection, function(prevalue, item) {
-      if (!prevalue) {return false;}
-      else {return Boolean(iterator(item));}
-    }, true);
-  };
-  // Is my understanding correct?
-  // In _.reduce here, the prevalue starts as true. As we iterate through our function,
-  // if iterator is ever NOT true for an item, then, as per the _.reduce function,
-  //                      prevalue = iterator(prevalue, item); 
-  // prevalue will get assigned a new value, i.e. false. As we keep iterating through our function,
-  // as _.reduce does, prevalue will thus repeatedly get assigned the value false. Ultimately then,
-  // _.every would return false.
+      if (!prevalue) {return false;}         // 2) and then prevalue would stay false
+      else {return Boolean(iterator(item));} // 1) this would change prevalue to false (if it's false)
+    }, true); // by default true
+  }
 
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
    _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
-    if (collection.length === 0) {return false;}
+    if (collection.length === 0) {return false;} // not necessary
     if (!iterator) {iterator = _.identity;}
 
     return !_.every(collection, function(item) {
       return !iterator(item);
       });
   };
-  // For every item in the collection, return the opposite boolean of iterator being tested
-  // on an item. So if it passes for 1 out of 3, we'd have 1 false and 2 truths. _.every
-  // would then return false.
-  // So we need to negate _.every to have _.some return true, as it should.
 
   /**
    * OBJECTS
@@ -269,7 +247,7 @@
     var args = Array.prototype.slice.call(arguments,1);
     _.each(args, function(item){
       _.each(item, function(value, key){
-        if(!obj.hasOwnProperty(key)) { obj[key] = value; }
+        if(!obj.hasOwnProperty(key)) {obj[key] = value;}
       });
     });
     return obj;
@@ -322,19 +300,15 @@
   // instead if possible.
   _.memoize = function(func) {
     var storage = {};
-    return function() {
-      var key = _.identity.apply(this, arguments);
-      if (storage[key]) {
-        return storage[key];
-        // already computed result, so returning that value instead
-      }
-      else {
-        storage[key] = func.apply(this, arguments);
-        return storage[key];
+    return function(arg) {
+      if (storage.hasOwnProperty(arg)) {
+        return storage[arg];
+      } else {
+        storage[arg] = func.apply(this, arguments)
+        return storage[arg];
       }
     };
-  };
-
+  }
 
   // Delays a function for the given number of milliseconds, and then calls
   // it with the arguments supplied.
@@ -363,13 +337,16 @@
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
     var copy = array.slice();
+    var currIndex = copy.length;
     var tempValue;
-    var randomIndex;
-    for (var i = copy.length-1; i > 0; i--) {
-      randomIndex = Math.floor(Math.random() * (i+1));
-      tempValue = copy[i];
-      copy[i] = copy[randomIndex];
-      copy[randomIndex] = tempValue;
+    var randIndex;
+    while (currIndex) {
+      randIndex = Math.floor(Math.random() * currIndex); // calculating a random index
+      currIndex--; // immediately subtract 1 to start with the last item in array
+      
+      tempValue = copy[currIndex];
+      copy[currIndex] = copy[randIndex];
+      copy[randIndex] = tempValue;  // moving toward the front, every card is replaced
     }
     return copy;
   };
