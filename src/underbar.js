@@ -77,7 +77,6 @@
     return result;
   };
 
-
   // Return all elements of an array that pass a truth test.
   _.filter = function(collection, test) {
     var newArr = [];
@@ -102,27 +101,28 @@
 
   // Produce a duplicate-free version of the array.
   _.uniq = function(array) {
-    var tracker = {};
-    var newArr = [];
+    var storage = {};
+    var results = [];
     _.each(array, function(item) {
-      if (!tracker.hasOwnProperty(item)) {
-        newArr.push(item);
-        tracker[item] = true;
+      if (!storage.hasOwnProperty(item)) {
+        results.push(item);
+        storage[item] = true;
       }
     });
-    return newArr;
+    return results;
   };
+
 
   // Return the results of applying an iterator to each element.
   _.map = function(collection, iterator) {
     // map() is a useful primitive iteration function that works a lot
     // like each(), but in addition to running the operation on all
     // the members, it also maintains an array of results.
-    var newArr = [];
+    var results = [];
     _.each(collection, function(item) {
-      newArr.push(iterator(item));
+      results.push(iterator(item));
     });
-    return newArr;
+    return results;
   };
 
 
@@ -181,7 +181,7 @@
     // TIP: Many iteration problems can be most easily expressed in
     // terms of reduce(). Here's a freebie to demonstrate!
     return _.reduce(collection, function(prevalue, item) {
-      if (prevalue) {return true;}   // 2) <- and then prevalue would stay true
+      if (prevalue) {return true;}   // 2) <- and then prevalue being true would return true
       else {return item === target;} // 1) prevalue would get set to true (if it's true)
     }, false); // by default false
   }
@@ -211,6 +211,12 @@
       });
   };
 
+ /*
+ Some dogs bark. E b
+ Not all dogs do not bark. ~V ~b
+ E b = ~V ~b
+ */
+
   /**
    * OBJECTS
    * =======
@@ -230,9 +236,7 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
-    var args = Array.prototype.slice.call(arguments,1);
-    // Converts to a real array the arguments passed in
-    _.each(args, function(item) {
+    _.each(arguments, function(item) {
       _.each(item, function(value, key) {
         obj[key] = value;
       });
@@ -284,6 +288,32 @@
     };
   };
 
+
+var once = function(func) {
+    var alreadyCalled = false;
+    console.log(4);
+    var results;
+    console.log(5);
+    return function() {
+      console.log(6);
+      if (!alreadyCalled) {
+        console.log(7);
+        results = func.apply(this, arguments);
+      }
+      alreadyCalled = true;
+      console.log(8);
+      return results;
+    };
+  };
+
+var add = function(a,b) {
+  return a + b;
+};
+  
+var canOnlyFireOnce = once(add);
+// once is a wrapper function for add
+// The function I'm PASSING to once can only fire once
+
   // Both call and apply are called on functions, which they run in the context
   // of the first argument. In call, the subsequent arguments are simply passed
   // into the function. Apply expects the second argument to be an array that
@@ -300,13 +330,12 @@
   // instead if possible.
   _.memoize = function(func) {
     var storage = {};
-    return function(arg) {
-      if (storage.hasOwnProperty(arg)) {
-        return storage[arg];
-      } else {
-        storage[arg] = func.apply(this, arguments)
-        return storage[arg];
+    return function() {
+      var args = Array.prototype.slice.apply(arguments);
+      if (!storage.hasOwnProperty(args)) {
+        storage[args] = func.apply(this, arguments);
       }
+      return storage[args];
     };
   }
 
@@ -318,7 +347,7 @@
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
     // Need to get all of the arguments after the first two
-    var args = Array.prototype.slice.call(arguments,2);
+    var args = Array.prototype.slice.call(arguments,2); // What's going on here?
     setTimeout(function() {
       func.apply(this, args);
     }, wait);
